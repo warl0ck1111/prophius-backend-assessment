@@ -37,6 +37,7 @@ public class PostService {
         Post post = Post.builder()
                 .creationDate(LocalDateTime.now())
                 .content(postRequest.getContent())
+                .likesCount(0)
                 .user(user)
                 .build();
         Post newPost = postRepository.save(post);
@@ -46,6 +47,7 @@ public class PostService {
                 .userId(user.getId())
                 .username(user.getUsername())
                 .creationDate(post.getCreationDate())
+                .likesCount(post.getLikesCount())
                 .build();
 
     }
@@ -80,6 +82,13 @@ public class PostService {
         postRepository.deleteById(postId);
 
 
+    }
+
+    @Transactional
+    public void likePost(long postId) {
+        log.info("likePost/postId = {}", postId);
+        Post post = findPostById(postId);
+        post.setLikesCount(post.getLikesCount() + 1);
     }
 
 

@@ -15,6 +15,7 @@ public class CreatePostResponse {
 
     private Long postId;
     private String content;
+    private int likesCount;
 
     private long userId;
     private String username;

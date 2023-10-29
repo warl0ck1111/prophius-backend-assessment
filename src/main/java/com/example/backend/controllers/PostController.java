@@ -62,7 +62,12 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
-
+    // Like a post
+    @PutMapping("/{postId}/like")
+    public ResponseEntity<Post> likePost(@PathVariable Long postId) {
+        postService.likePost(postId);
+        return ResponseEntity.ok().build();
+    }
 
     // Post search endpoint
     @GetMapping("/search/posts")

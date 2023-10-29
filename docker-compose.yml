@@ -1,0 +1,37 @@
+version: '3.1'
+services:
+  app:
+    container_name: prophius-assessment
+    image: prophius-assessment
+    build:
+      context: .                          #docker file path (. means root directory)
+      dockerfile: Dockerfile              #docker file name
+    ports:
+      - 9999:9999
+    restart: always
+    network_mode: host
+    depends_on:
+      - db
+  db:
+    image: mariadb
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=password12
+      - MYSQL_DATABASE=testDB
+    volumes:
+      - ./database:/var/lib/mysql
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=db
+    restart: always
+    ports:
+      - 8787:80
+    volumes:
+      - /sessions
+    links:
+      - db
