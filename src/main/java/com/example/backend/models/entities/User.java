@@ -39,10 +39,9 @@ public class User implements UserDetails {
 
     @JsonIgnore
     private Boolean locked = false;
+
     @JsonIgnore
     private Boolean enabled = false;
-
-
 
     private byte[] profilePicture;
 
@@ -92,7 +91,6 @@ public class User implements UserDetails {
     public boolean isCredentialsNonExpired() {
         return true;
     }
-    @JsonIgnore
     @Override
     public boolean isEnabled() {
         return enabled;

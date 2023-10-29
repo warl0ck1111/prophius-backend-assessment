@@ -1,4 +1,4 @@
-package com.example.backend;
+package com.example.backend.services;
 
 import com.example.backend.exceptions.CommentException;
 import com.example.backend.models.entities.Comment;
@@ -46,16 +46,16 @@ class CommentServiceTest {
     void testCreateComment() throws UnsupportedEncodingException {
         User user = new User();
         user.setCreationDate(LocalDate.of(1970, 1, 1).atStartOfDay());
-        user.setEmail("jane.doe@example.org");
+        user.setEmail("bashir.okala@hotmail.com");
         user.setEnabled(true);
         user.setFollowers(new HashSet<>());
         user.setFollowing(new HashSet<>());
         user.setId(1L);
         user.setLocked(true);
-        user.setPassword("iloveyou");
+        user.setPassword("password");
         user.setProfilePicture("AXAXAXAX".getBytes("UTF-8"));
         user.setRole(Role.USER);
-        user.setUsername("janedoe");
+        user.setUsername("warl0ck");
 
         Post post = new Post();
         post.setContent("Not all who wander are lost");
@@ -66,16 +66,16 @@ class CommentServiceTest {
 
         User user2 = new User();
         user2.setCreationDate(LocalDate.of(1970, 1, 1).atStartOfDay());
-        user2.setEmail("jane.doe@example.org");
+        user2.setEmail("bashir.okala@hotmail.com");
         user2.setEnabled(true);
         user2.setFollowers(new HashSet<>());
         user2.setFollowing(new HashSet<>());
         user2.setId(1L);
         user2.setLocked(true);
-        user2.setPassword("iloveyou");
+        user2.setPassword("password");
         user2.setProfilePicture("AXAXAXAX".getBytes("UTF-8"));
         user2.setRole(Role.USER);
-        user2.setUsername("janedoe");
+        user2.setUsername("warl0ck");
 
         Comment comment = new Comment();
         comment.setContent("Not all who wander are lost");
@@ -87,16 +87,16 @@ class CommentServiceTest {
 
         User user3 = new User();
         user3.setCreationDate(LocalDate.of(1970, 1, 1).atStartOfDay());
-        user3.setEmail("jane.doe@example.org");
+        user3.setEmail("bashir.okala@hotmail.com");
         user3.setEnabled(true);
         user3.setFollowers(new HashSet<>());
         user3.setFollowing(new HashSet<>());
         user3.setId(1L);
         user3.setLocked(true);
-        user3.setPassword("iloveyou");
+        user3.setPassword("password");
         user3.setProfilePicture("AXAXAXAX".getBytes("UTF-8"));
         user3.setRole(Role.USER);
-        user3.setUsername("janedoe");
+        user3.setUsername("warl0ck");
 
         Post post2 = new Post();
         post2.setContent("Not all who wander are lost");
@@ -108,16 +108,16 @@ class CommentServiceTest {
 
         User user4 = new User();
         user4.setCreationDate(LocalDate.of(1970, 1, 1).atStartOfDay());
-        user4.setEmail("jane.doe@example.org");
+        user4.setEmail("bashir.okala@hotmail.com");
         user4.setEnabled(true);
         user4.setFollowers(new HashSet<>());
         user4.setFollowing(new HashSet<>());
         user4.setId(1L);
         user4.setLocked(true);
-        user4.setPassword("iloveyou");
+        user4.setPassword("password");
         user4.setProfilePicture("AXAXAXAX".getBytes("UTF-8"));
         user4.setRole(Role.USER);
-        user4.setUsername("janedoe");
+        user4.setUsername("warl0ck");
         when(userService.getUser(anyLong())).thenReturn(user4);
         commentService.createComment(1L, 1L, "Not all who wander are lost");
         verify(postService).getPost(Mockito.<Long>any());
@@ -132,16 +132,16 @@ class CommentServiceTest {
     void testCreateComment2() throws UnsupportedEncodingException {
         User user = new User();
         user.setCreationDate(LocalDate.of(1970, 1, 1).atStartOfDay());
-        user.setEmail("jane.doe@example.org");
+        user.setEmail("bashir.okala@hotmail.com");
         user.setEnabled(true);
         user.setFollowers(new HashSet<>());
         user.setFollowing(new HashSet<>());
         user.setId(1L);
         user.setLocked(true);
-        user.setPassword("iloveyou");
+        user.setPassword("password");
         user.setProfilePicture("AXAXAXAX".getBytes("UTF-8"));
         user.setRole(Role.USER);
-        user.setUsername("janedoe");
+        user.setUsername("warl0ck");
 
         Post post = new Post();
         post.setContent("Not all who wander are lost");

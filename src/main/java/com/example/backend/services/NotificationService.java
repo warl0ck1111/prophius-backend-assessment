@@ -7,6 +7,7 @@ import com.example.backend.models.entities.Post;
 import com.example.backend.models.entities.User;
 import com.example.backend.repositories.NotificationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,22 +16,19 @@ import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
-    private final PostService postService;
-    private final UserService userService;
+
 
 
     public Notification createNotification(CreateNotificationRequest notificationRequest) {
-        User recipientUser = userService.getUser(notificationRequest.getUserId());
-        User notificationSender = userService.getUser(notificationRequest.getSenderId());
-        Post post = postService.getPost(notificationRequest.getPostId());
-
+        log.info("createNotification/request="+notificationRequest);
         Notification notification = Notification.builder()
-                .sender(notificationSender)
-                .user(recipientUser)
-                .post(post)
+                .sender(notificationRequest.getSender())
+                .user(notificationRequest.getUser())
+                .post(notificationRequest.getPost())
                 .notificationType(notificationRequest.getNotificationType())
                 .createdAt(LocalDateTime.now())
                 .isRead(false).build();
@@ -38,19 +36,22 @@ public class NotificationService {
     }
 
     public List<Notification> getNotificationsForUser(long userId) {
+        log.info("getNotificationsForUser/userId="+userId);
+
         return notificationRepository.findByUserId(userId);
     }
 
     public void markNotificationAsRead(long notificationId) {
+        log.info("markNotificationAsRead/notificationId="+notificationId);
+
         Notification notification = findNotificationById(notificationId);
         notification.setRead(true);
         notificationRepository.save(notification);
     }
 
-    //todo add get only unread notifications impl...
-
 
     private Notification findNotificationById(long notificationId) {
+        log.info("findNotificationById/notificationId="+notificationId);
         return notificationRepository.findById(notificationId).orElseThrow(() -> new NoSuchElementException("notification not found"));
     }
 }

@@ -2,11 +2,13 @@ package com.example.backend.services;
 
 import com.example.backend.exceptions.PostException;
 import com.example.backend.exceptions.PostNotFoundException;
+import com.example.backend.models.dtos.CreateNotificationRequest;
 import com.example.backend.models.dtos.CreatePostRequest;
 import com.example.backend.models.dtos.CreatePostResponse;
 import com.example.backend.models.entities.Comment;
 import com.example.backend.models.entities.Post;
 import com.example.backend.models.entities.User;
+import com.example.backend.models.enums.NotificationType;
 import com.example.backend.repositories.CommentRepository;
 import com.example.backend.repositories.PostRepository;
 import jakarta.transaction.Transactional;
@@ -29,6 +31,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserService userService;
     private final CommentRepository commentRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public CreatePostResponse createPost(CreatePostRequest postRequest) {
@@ -57,11 +60,18 @@ public class PostService {
         return findPostById(postId);
     }
 
-    public void updatePost(Long postId, String content) {
+    public void updatePost(Long postId,Long userId, String content) {
+        log.info("updatePost/userId = {}", userId);
         log.info("updatePost/postId = {}", postId);
         log.info("updatePost/contentLength = {}", content.length());
         validatePostContent(content);
+
         Post post = findPostById(postId);
+        //check to see if user who made first post is the same one trying to update it
+        if (userId.compareTo(post.getUser().getId()) !=0){
+            throw new PostException("can not perform this operation");
+        }
+
         post.setContent(content);
         postRepository.save(post);
     }
@@ -85,10 +95,19 @@ public class PostService {
     }
 
     @Transactional
-    public void likePost(long postId) {
+    public void likePost(long postId, long userId) {
         log.info("likePost/postId = {}", postId);
         Post post = findPostById(postId);
+        User user = userService.getUser(userId);
         post.setLikesCount(post.getLikesCount() + 1);
+
+        CreateNotificationRequest notificationRequest = CreateNotificationRequest.builder()
+                .notificationType(NotificationType.LIKE)
+                .sender(user)
+                .post(post)
+                .user(post.getUser())
+                .build();
+        notificationService.createNotification(notificationRequest);
     }
 
 
@@ -99,7 +118,11 @@ public class PostService {
         log.info("searchPosts/sortField = {}", sortField);
         log.info("searchPosts/sortDirection = {}", sortDirection);
         Sort sort = Sort.by(sortDirection, sortField);
-        return postRepository.searchPosts(keyword, PageRequest.of(page, pageSize, sort));
+        if (Strings.isNotBlank(keyword)) {
+            return postRepository.searchPosts(keyword, PageRequest.of(page, pageSize, sort));
+        }else{
+            throw new PostException("provide a search keyword");
+        }
     }
 
     public Page<Post> getAllPosts(int page, int pageSize, String sortField, Sort.Direction sortDirection) {
@@ -114,7 +137,7 @@ public class PostService {
 
     private Post findPostById(long postId) {
         log.info("findPostById/postId = {}", postId);
-        return postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException("post not found"));
+        return postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(String.format("post with id:%s not found", postId)));
     }
 
     private void validatePostContent(String content) {

@@ -13,25 +13,13 @@ services:
     depends_on:
       - db
   db:
-    image: mariadb
-    restart: always
+    image: postgres:latest
     ports:
-      - 3306:3306
+      - "5432:5432"
     environment:
-      - MYSQL_ROOT_PASSWORD=password12
-      - MYSQL_DATABASE=testDB
-    volumes:
-      - ./database:/var/lib/mysql
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: phpmyadmin
-    environment:
-      - PMA_ARBITRARY=1
-      - PMA_HOST=db
-    restart: always
-    ports:
-      - 8787:80
-    volumes:
-      - /sessions
-    links:
-      - db
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/backend
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
+      - SPRING_PROPERTIES_HIBERNATE_FORMAT_SQL=true

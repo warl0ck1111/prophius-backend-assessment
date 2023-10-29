@@ -1,4 +1,4 @@
-package com.example.backend;
+package com.example.backend.services;
 
 import com.example.backend.exceptions.PostException;
 import com.example.backend.models.dtos.CreatePostRequest;
@@ -8,6 +8,8 @@ import com.example.backend.models.entities.User;
 import com.example.backend.models.enums.Role;
 import com.example.backend.repositories.CommentRepository;
 import com.example.backend.repositories.PostRepository;
+import com.example.backend.services.PostService;
+import com.example.backend.services.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -22,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
@@ -47,16 +50,16 @@ class PostServiceTest {
     void testCreatePost() throws UnsupportedEncodingException {
         User user = new User();
         user.setCreationDate(LocalDate.of(1970, 1, 1).atStartOfDay());
-        user.setEmail("jane.doe@example.org");
+        user.setEmail("bashir.okala@hotmail.com");
         user.setEnabled(true);
         user.setFollowers(new HashSet<>());
         user.setFollowing(new HashSet<>());
         user.setId(1L);
         user.setLocked(true);
-        user.setPassword("iloveyou");
+        user.setPassword("password");
         user.setProfilePicture("AXAXAXAX".getBytes("UTF-8"));
         user.setRole(Role.USER);
-        user.setUsername("janedoe");
+        user.setUsername("warl0ck");
 
         Post post = new Post();
         post.setContent("Not all who wander are lost");
@@ -68,23 +71,23 @@ class PostServiceTest {
 
         User user2 = new User();
         user2.setCreationDate(LocalDate.of(1970, 1, 1).atStartOfDay());
-        user2.setEmail("jane.doe@example.org");
+        user2.setEmail("bashir.okala@hotmail.com");
         user2.setEnabled(true);
         user2.setFollowers(new HashSet<>());
         user2.setFollowing(new HashSet<>());
         user2.setId(1L);
         user2.setLocked(true);
-        user2.setPassword("iloveyou");
+        user2.setPassword("password");
         user2.setProfilePicture("AXAXAXAX".getBytes("UTF-8"));
         user2.setRole(Role.USER);
-        user2.setUsername("janedoe");
+        user2.setUsername("warl0ck");
         when(userService.getUser(anyLong())).thenReturn(user2);
         CreatePostResponse actualCreatePostResult = postService
                 .createPost(new CreatePostRequest("Not all who wander are lost", 1L));
         verify(userService).getUser(anyLong());
         verify(postRepository).save(Mockito.<Post>any());
         assertEquals("Not all who wander are lost", actualCreatePostResult.getContent());
-        assertEquals("jane.doe@example.org", actualCreatePostResult.getUsername());
+        assertEquals("bashir.okala@hotmail.com", actualCreatePostResult.getUsername());
         assertEquals(0, actualCreatePostResult.getLikesCount());
         assertEquals(1L, actualCreatePostResult.getUserId());
         assertEquals(1L, actualCreatePostResult.getPostId().longValue());
@@ -108,16 +111,16 @@ class PostServiceTest {
     void testCreatePost3() throws UnsupportedEncodingException {
         User user = new User();
         user.setCreationDate(LocalDate.of(1970, 1, 1).atStartOfDay());
-        user.setEmail("jane.doe@example.org");
+        user.setEmail("bashir.okala@hotmail.com");
         user.setEnabled(true);
         user.setFollowers(new HashSet<>());
         user.setFollowing(new HashSet<>());
         user.setId(1L);
         user.setLocked(true);
-        user.setPassword("iloveyou");
+        user.setPassword("password");
         user.setProfilePicture("AXAXAXAX".getBytes("UTF-8"));
         user.setRole(Role.USER);
-        user.setUsername("janedoe");
+        user.setUsername("warl0ck");
         Post post = mock(Post.class);
         when(post.getId()).thenReturn(1L);
         doNothing().when(post).setContent(Mockito.<String>any());
@@ -134,16 +137,16 @@ class PostServiceTest {
 
         User user2 = new User();
         user2.setCreationDate(LocalDate.of(1970, 1, 1).atStartOfDay());
-        user2.setEmail("jane.doe@example.org");
+        user2.setEmail("bashir.okala@hotmail.com");
         user2.setEnabled(true);
         user2.setFollowers(new HashSet<>());
         user2.setFollowing(new HashSet<>());
         user2.setId(1L);
         user2.setLocked(true);
-        user2.setPassword("iloveyou");
+        user2.setPassword("password");
         user2.setProfilePicture("AXAXAXAX".getBytes("UTF-8"));
         user2.setRole(Role.USER);
-        user2.setUsername("janedoe");
+        user2.setUsername("warl0ck");
         when(userService.getUser(anyLong())).thenReturn(user2);
         CreatePostResponse actualCreatePostResult = postService
                 .createPost(new CreatePostRequest("Not all who wander are lost", 1L));
@@ -156,7 +159,7 @@ class PostServiceTest {
         verify(userService).getUser(anyLong());
         verify(postRepository).save(Mockito.<Post>any());
         assertEquals("Not all who wander are lost", actualCreatePostResult.getContent());
-        assertEquals("jane.doe@example.org", actualCreatePostResult.getUsername());
+        assertEquals("bashir.okala@hotmail.com", actualCreatePostResult.getUsername());
         assertEquals(0, actualCreatePostResult.getLikesCount());
         assertEquals(1L, actualCreatePostResult.getUserId());
         assertEquals(1L, actualCreatePostResult.getPostId().longValue());
@@ -169,16 +172,16 @@ class PostServiceTest {
     void testCreatePost4() throws UnsupportedEncodingException {
         User user = new User();
         user.setCreationDate(LocalDate.of(1970, 1, 1).atStartOfDay());
-        user.setEmail("jane.doe@example.org");
+        user.setEmail("bashir.okala@hotmail.com");
         user.setEnabled(true);
         user.setFollowers(new HashSet<>());
         user.setFollowing(new HashSet<>());
         user.setId(1L);
         user.setLocked(true);
-        user.setPassword("iloveyou");
+        user.setPassword("password");
         user.setProfilePicture("AXAXAXAX".getBytes("UTF-8"));
         user.setRole(Role.USER);
-        user.setUsername("janedoe");
+        user.setUsername("warl0ck");
         Post post = mock(Post.class);
         when(post.getId()).thenReturn(1L);
         doNothing().when(post).setContent(Mockito.<String>any());
@@ -194,7 +197,7 @@ class PostServiceTest {
         when(postRepository.save(Mockito.<Post>any())).thenReturn(post);
         User user2 = mock(User.class);
         when(user2.getId()).thenReturn(1L);
-        when(user2.getUsername()).thenReturn("janedoe");
+        when(user2.getUsername()).thenReturn("warl0ck");
         doNothing().when(user2).setCreationDate(Mockito.<LocalDateTime>any());
         doNothing().when(user2).setEmail(Mockito.<String>any());
         doNothing().when(user2).setEnabled(Mockito.<Boolean>any());
@@ -207,16 +210,16 @@ class PostServiceTest {
         doNothing().when(user2).setRole(Mockito.<Role>any());
         doNothing().when(user2).setUsername(Mockito.<String>any());
         user2.setCreationDate(LocalDate.of(1970, 1, 1).atStartOfDay());
-        user2.setEmail("jane.doe@example.org");
+        user2.setEmail("bashir.okala@hotmail.com");
         user2.setEnabled(true);
         user2.setFollowers(new HashSet<>());
         user2.setFollowing(new HashSet<>());
         user2.setId(1L);
         user2.setLocked(true);
-        user2.setPassword("iloveyou");
+        user2.setPassword("password");
         user2.setProfilePicture("AXAXAXAX".getBytes("UTF-8"));
         user2.setRole(Role.USER);
-        user2.setUsername("janedoe");
+        user2.setUsername("warl0ck");
         when(userService.getUser(anyLong())).thenReturn(user2);
         CreatePostResponse actualCreatePostResult = postService
                 .createPost(new CreatePostRequest("Not all who wander are lost", 1L));
@@ -242,7 +245,7 @@ class PostServiceTest {
         verify(userService).getUser(anyLong());
         verify(postRepository).save(Mockito.<Post>any());
         assertEquals("Not all who wander are lost", actualCreatePostResult.getContent());
-        assertEquals("janedoe", actualCreatePostResult.getUsername());
+        assertEquals("warl0ck", actualCreatePostResult.getUsername());
         assertEquals(0, actualCreatePostResult.getLikesCount());
         assertEquals(1L, actualCreatePostResult.getUserId());
         assertEquals(1L, actualCreatePostResult.getPostId().longValue());

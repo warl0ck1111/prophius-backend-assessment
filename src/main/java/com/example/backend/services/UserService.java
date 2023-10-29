@@ -3,10 +3,7 @@ package com.example.backend.services;
 import com.example.backend.config.JwtService;
 import com.example.backend.exceptions.UserException;
 import com.example.backend.exceptions.UserNotFoundException;
-import com.example.backend.models.dtos.AuthenticationRequest;
-import com.example.backend.models.dtos.AuthenticationResponse;
-import com.example.backend.models.dtos.CreateUserRequest;
-import com.example.backend.models.dtos.UpdateUserRequest;
+import com.example.backend.models.dtos.*;
 import com.example.backend.models.entities.Comment;
 import com.example.backend.models.entities.Post;
 import com.example.backend.models.entities.User;
@@ -23,6 +20,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,7 +35,7 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class UserService {
+public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final JwtService jwtService;
@@ -43,58 +43,6 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
-
-    public AuthenticationResponse createUser(CreateUserRequest userRequest) {
-        log.info("createUser/userRequest = {}", userRequest);
-        try {
-
-            if (userRequest != null) {
-                //check if user exists
-                Boolean userExists = userRepository.existsByEmail(userRequest.getEmail().toLowerCase());
-                Boolean userNameExists = userRepository.existsByUsername(userRequest.getUsername().toLowerCase());
-                if (userExists) {
-                    log.error("user with email {} already exists", userRequest.getEmail());
-                    throw new UserException(String.format("user with email: %s already exists", userRequest.getEmail()));
-                } else if (userNameExists) {
-                    log.error("username already exists");
-                    throw new UserException("username already exists");
-                } else { // create new user
-                    String encodedPassword = passwordEncoder.encode((userRequest.getPassword()));
-
-                    User newUser = User.builder()
-                            .email(userRequest.getEmail().toLowerCase().trim())
-                            .username(userRequest.getUsername().toLowerCase().trim())
-                            .password(encodedPassword)
-                            .role(Role.USER)
-                            .profilePicture(null)
-                            .enabled(true)
-                            .locked(false)
-                            .followers(Collections.emptySet())
-                            .following(Collections.emptySet())
-                            .build();
-                    User user = userRepository.save(newUser);
-                    log.info("createUser/ user {} created successfully", userRequest.getEmail());
-
-                    //todo: send activation mail
-
-                    var jwtToken = jwtService.generateToken(user);
-                    var refreshToken = jwtService.generateRefreshToken(user);
-                    return AuthenticationResponse.builder()
-                            .accessToken(jwtToken)
-                            .refreshToken(refreshToken)
-                            .userId(String.valueOf(user.getId()))
-                            .email(user.getEmail())
-                            .username(user.getUsername())
-                            .role(user.getRole().name())
-                            .build();
-                }
-            }
-        } catch (Exception e) {
-            log.error("createUser/there was an exception=" + e);
-            throw new RuntimeException(e.getMessage());
-        }
-        return null;
-    }
 
 
     public AuthenticationResponse loginUser(@NotNull AuthenticationRequest request) {
@@ -114,12 +62,50 @@ public class UserService {
         return null;
     }
 
+    @Transactional
+    public AuthenticationResponse createUser(CreateUserRequest userRequest) {
+        log.info("createUser/userRequest = {}", userRequest);
+        try {
 
-    public User getUser(long userId) {
-        log.info("getUser/userId = {}", userId);
-        return findUserById(userId);
+            if (userRequest != null) {
+                //check if user exists
+                Boolean userExists = userRepository.existsByEmail(userRequest.getEmail().toLowerCase());
+                Boolean userNameExists = userRepository.existsByUsername(userRequest.getUsername().toLowerCase());
+                if (userExists) {
+                    log.error("user with email {} already exists", userRequest.getEmail());
+                    throw new UserException(String.format("user with email: %s already exists", userRequest.getEmail()));
+                } else if (userNameExists) {
+                    log.error("username already exists");
+                    throw new UserException("username %s already exists");
+                } else { // create new user
+                    String encodedPassword = passwordEncoder.encode((userRequest.getPassword()));
+
+                    User newUser = User.builder()
+                            .email(userRequest.getEmail().toLowerCase().trim())
+                            .username(userRequest.getUsername().toLowerCase().trim())
+                            .password(encodedPassword)
+                            .role(Role.USER)
+                            .profilePicture(null)
+                            .enabled(true)
+                            .locked(false)
+                            .followers(Collections.emptySet())
+                            .following(Collections.emptySet()).build();
+                    User user = userRepository.save(newUser);
+                    log.info("createUser/ user {} created successfully", userRequest.getEmail());
+
+                    var jwtToken = jwtService.generateToken(user);
+                    var refreshToken = jwtService.generateRefreshToken(user);
+                    return AuthenticationResponse.builder().accessToken(jwtToken).refreshToken(refreshToken).userId(String.valueOf(user.getId())).email(user.getEmail()).username(user.getUsername()).role(user.getRole().name()).build();
+                }
+            }
+        } catch (Exception e) {
+            log.error("createUser/there was an exception=" + e);
+            throw new RuntimeException(e.getMessage());
+        }
+        return null;
     }
 
+    @Transactional
     public User updateUser(long userId, UpdateUserRequest userRequest) {
         log.info("updateUser/userRequest = {}", userRequest);
         User user = findUserById(userId);
@@ -129,46 +115,12 @@ public class UserService {
         return userRepository.save(user);
     }
 
-
-    public void followUser(long followerId, long followeeId) {
-        User followee = findUserById(followeeId);
-
-        User newFollower = findUserById(followerId);
-
-        // Add newFollower to the following list of user
-        followee.getFollowing().add(newFollower);
-        User save = userRepository.save(followee);
-
-
+    public User getUser(long userId) {
+        log.info("getUser/userId = {}", userId);
+        return findUserById(userId);
     }
 
-
-    public void unFollowUser(long unFollowerId, long followeeId) {
-        User unFollower = findUserById(unFollowerId);
-        User followee = findUserById(followeeId);
-
-        // Remove userToUnfollow from the following list of user
-        unFollower.getFollowing().remove(unFollower);
-        userRepository.save(unFollower);
-
-    }
-
-    public Set<User> getAllUserFollowers(long userId) {
-        User user = findUserById(userId);
-        return user.getFollowers();
-    }
-
-    public Set<User> getAllUserFollowing(long userId) {
-        User user = findUserById(userId);
-        return user.getFollowing();
-    }
-
-    public User uploadProfilePicture(long userId, MultipartFile profilePicture) throws IOException {
-        User userProfile = getUser(userId);
-        userProfile.setProfilePicture(profilePicture.getBytes());
-        return userRepository.save(userProfile);
-    }
-
+    @Transactional
     public void deleteUser(long userId) {
         log.info("deleteUser/userId = {}", userId);
         User user = findUserById(userId);
@@ -191,6 +143,79 @@ public class UserService {
         userRepository.delete(user);
     }
 
+    @Transactional
+    public void followUser(long userId, long followerId) {
+        log.info("followUser/userId={}", userId);
+        log.info("followUser/followerId={}", followerId);
+
+        boolean userExists = existsById(userId);
+
+        if (userId == followerId) throw new UserException("user can not follow himself");
+        if (userExists) {
+            boolean followerExists = existsById(followerId);
+            if (followerExists) {
+                //update user's followers
+                userRepository.insertUserFollower(userId, followerId);
+            } else {
+                throw new UserNotFoundException(String.format("follower with Id: %s does not Exist", userId));
+            }
+        } else {
+            throw new UserNotFoundException(String.format("user with Id: %s does not Exist", userId));
+        }
+
+    }
+
+    @Transactional
+    public void unFollowUser(long userId, long followerId) {
+
+        log.info("unFollowUser/userId={}", userId);
+        log.info("unFollowUser/followerId={}", followerId);
+        boolean userExists = existsById(userId);
+
+        if (userId == followerId) throw new UserException("user can not follow himself");
+        if (userExists) {
+
+            boolean followerExists = existsById(followerId);
+            if (followerExists) {
+
+                //update user's followers
+                userRepository.deleteByUserIdAndFollowerId(userId, followerId);
+            } else {
+                throw new UserNotFoundException(String.format("follower with Id: %s does not Exist", userId));
+            }
+        } else {
+            throw new UserNotFoundException(String.format("user with Id: %s does not Exist", userId));
+        }
+
+        //update userToBeFollowed
+    }
+
+
+    public Set<Followers> getUserFollowers(long userId) {
+        boolean userExists = existsById(userId);
+        if (userExists) {
+            return userRepository.getUsersFollowers(userId);
+        }else {
+            throw new UserNotFoundException(String.format("user with id:%s does not exist", userId));
+        }
+    }
+
+    public Set<Followers> getUserFollowing(long userId) {
+        boolean userExists = existsById(userId);
+        if (userExists) {
+            return userRepository.getUsersFollowing(userId);
+        }else {
+            throw new UserNotFoundException(String.format("user with id:%s does not exist", userId));
+        }
+    }
+
+    public User uploadProfilePicture(long userId, MultipartFile profilePicture) throws IOException {
+        User userProfile = getUser(userId);
+        userProfile.setProfilePicture(profilePicture.getBytes());
+        return userRepository.save(userProfile);
+    }
+
+
     public Page<User> getAllUsers(int page, int pageSize, String sortField, Sort.Direction sortDirection) {
         log.info("getAllUsers/page = {}", page);
         log.info("getAllUsers/pageSize = {}", pageSize);
@@ -211,56 +236,28 @@ public class UserService {
     }
 
 
-    @Transactional
-    public void enableUser(String email) {
-        log.info("enableUser/email: {}", email);
-        User user = findUserByEmail(email);
-        user.setEnabled(true);
-        userRepository.save(user);
-        log.info("enableUser/user enabled successfully");
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
+        log.info("loadByUsername/email:{}", email);
+        return userRepository.findByEmail(email).orElseThrow(() -> {
+            log.error(String.format("no user with email: %s found", email));
+            return new UserException(String.format("no user with email: %s found", email));
+        });
     }
-
-
-    @Transactional
-    public void disableUser(String email) {
-        log.info("disableUser/email: {}", email);
-        User user = findUserByEmail(email);
-        user.setEnabled(false);
-        userRepository.save(user);
-        log.info("disableUser/user disabled successfully");
-
-    }
-
-
-    @Transactional
-    public void lockUser(String email) {
-        log.info("lockUser/email: {}", email);
-        User user = findUserByEmail(email);
-        user.setLocked(true);
-        userRepository.save(user);
-        log.info("lockUser/user locked successfully");
-    }
-
-
-    @Transactional
-    public void unlockUser(String email) {
-        log.info("unlockUser/email: {}", email);
-        User user = findUserByEmail(email);
-        user.setLocked(false);
-        userRepository.save(user);
-        log.info("unlockUser/user locked successfully");
-    }
-
 
     private User findUserById(long userId) {
         log.info("findUserById/userId = {}", userId);
-        return userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("user not found"));
+        return userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(String.format("user with id %s not found", userId)));
     }
 
     private User findUserByEmail(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("user not found"));
-        return user;
+        return userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(String.format("user with email %s not found", email)));
     }
+
+    private boolean existsById(long userId) {
+        return userRepository.existsById(userId);
+    }
+
 
 }
